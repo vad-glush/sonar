@@ -1,0 +1,74 @@
+version: '3'
+services:
+  sonarqube:
+    build:
+      context: .
+      dockerfile: Dockerfile.sonarqube-lts
+    container_name: sonarqube
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - sonar.es.bootstrap.checks.disable=true
+      - sonar.jdbc.username=LOGIN
+      - sonar.jdbc.password=PASSWORD
+      - sonar.jdbc.url=jdbc:postgresql://sonarqube-postgres:5432/sonar
+      - SONAR_WEB_JAVAADDITIONALOPTS=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=web
+      - SONAR_CE_JAVAADDITIONALOPTS=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.22.0.jar=ce
+    volumes:
+      - sonar_datax:/opt/sonarqube/data:rw
+      - sonar_conf:/opt/sonarqube/conf:rw
+      - sonar_logs:/opt/sonarqube/logs:rw
+      - sonar_ext:/opt/sonarqube/extensions:rw
+    ports:
+      - "9000:9000"
+    networks:
+      - sonarnet
+#Добавление в хостс
+    extra_hosts:
+      - "ibpsoft:192.168.7.222"
+    restart: always
+  sonarqube-postgres:
+    image: postgres:15.6
+    container_name: sonarqube-postgres
+    environment:
+      - POSTGRES_USER=LOGIN
+      - POSTGRES_PASSWORD=PASSWORD
+      - POSTGRES_DB=sonar
+    volumes:
+      - sonar_data_db:/var/lib/postgresql/data:rw
+    networks:
+      - sonarnet
+    restart: always
+networks:
+  sonarnet:
+    driver: bridge
+volumes:
+  sonar_datax:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/var/storage/sonarqube/data/data/'
+  sonar_conf:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/var/storage/sonarqube/data/conf/'
+  sonar_logs:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/var/storage/sonarqube/data/logs/'
+  sonar_ext:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/var/storage/sonarqube/data/extensions/'
+  sonar_data_db:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/var/storage/sonarqube/db/'

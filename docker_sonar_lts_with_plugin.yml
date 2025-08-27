@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  sonarqube:
+    build:
+      context: .
+      dockerfile: Dockerfile.sonarqube-lts-with-plugin
+    container_name: sonarqube-lts-with-plugin
+    environment:
+      - sonar.jdbc.username=sonar
+      - sonar.jdbc.password=sonar
+      - sonar.jdbc.url=jdbc:postgresql://sonarqube-postgres:5432/sonar
+      - SONAR_WEB_JAVAADDITIONALOPTS=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.14.0.jar=web
+      - SONAR_CE_JAVAADDITIONALOPTS=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-1.14.0.jar=ce
+    volumes:
+      - sonar_data_lts_plugin:/opt/sonarqube/data:rw
+    ports:
+      - "9000:9000"
+    depends_on:
+      - sonarqube-postgres
+    networks:
+      - sonarnet
+
+  sonarqube-postgres:
+    image: postgres:15.6
+    container_name: sonarqube-postgres-lts-plugin
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - sonar_data_db_lts_plugin:/var/lib/postgresql/data:rw
+    networks:
+      - sonarnet
+
+volumes:
+  sonar_data_lts_plugin:
+  sonar_data_db_lts_plugin:
+
+networks:
+  sonarnet:
+    driver: bridge
