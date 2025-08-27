@@ -1,0 +1,36 @@
+# Large files
+*.tar
+*.tar.gz
+*.zip
+*.jar
+
+# Docker images
+*.tar.gz
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if any)
+node_modules/
+
+# Python cache (if any)
+__pycache__/
+*.pyc
+
+# Backup files
+*.bak
+*.backup
