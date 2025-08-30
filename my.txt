@@ -1,0 +1,95 @@
+
+
+
+docker run -it --rm \
+  --name pg-upgrade-helper \
+  -v /var/storage/sonarqube/db:/var/lib/postgresql/11/data:ro \
+  -v /path/to/empty/folder:/var/lib/postgresql/15/data \
+  -e PGUSER=sonar \
+  -e PGPASSWORD=sonar \
+  postgres:15.6 /bin/bash
+
+docker run -it --rm \
+  --name pg-upgrade-helper \
+  -v /var/storage/sonarqube/db:/var/lib/postgresql/11/data \
+  -v /var/storage/sonarqube/db15:/var/lib/postgresql/15/data \
+  -v /mnt/nfs/TMP_SONAR:/tmp/TMP_SONAR \
+  -e PGUSER=sonar \
+  -e PGPASSWORD=sonar \
+  --user root \
+  postgres:15.6 /bin/bash
+
+
+# Внутри контейнера
+apt-get update
+apt-get install -y postgresql-11
+
+su - postgres
+sudo chown -R 999:999 /var/storage/sonarqube/db15
+/usr/lib/postgresql/15/bin/initdb -D /var/lib/postgresql/15/data -E UTF8 --locale=en_US.utf8
+
+
+# Запустим сервер Postgres 15
+/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/15/data -l /tmp/pg15.log start
+
+# Подождем немного
+sleep 3
+
+# Создадим пользователя sonar
+/usr/lib/postgresql/15/bin/psql -d postgres -c "
+CREATE USER sonar WITH 
+  SUPERUSER       -- Полные права суперпользователя
+  CREATEDB        -- Может создавать базы данных
+  CREATEROLE      -- Может создавать роли
+  INHERIT         -- Наследует права
+  LOGIN           -- Может логиниться
+  REPLICATION     -- Может делать репликацию
+  BYPASSRLS       -- Обходит RLS (Row Level Security)
+  PASSWORD 'sonar';  -- Пароль
+"
+
+
+ДЛЯ старой базы 
+docker run -it --rm \
+  --name pg-11-helper \
+  -v /var/storage/sonarqube/db:/var/lib/postgresql/data \
+  -e POSTGRES_USER=sonar \
+  -e POSTGRES_PASSWORD=sonar \
+  -e POSTGRES_DB=sonar \
+  postgres:11.15 /bin/bash
+
+su - postgres
+/usr/lib/postgresql/11/bin/pg_ctl -D /var/lib/postgresql/11/data -l /tmp/postgres.log start
+psql -U sonar -d postgres
+
+CREATE USER postgres WITH 
+  SUPERUSER
+  CREATEDB
+  CREATEROLE
+  INHERIT
+  LOGIN
+  REPLICATION
+  BYPASSRLS
+  PASSWORD 'postgres';
+
+
+
+
+# Проверим, что пользователь создался
+/usr/lib/postgresql/15/bin/psql -d postgres -c "\du"
+
+# Остановим сервер
+/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/15/data stop
+
+
+# Внутри контейнера (все еще под пользователем postgres)
+/usr/lib/postgresql/15/bin/pg_upgrade \
+  -b /usr/lib/postgresql/11/bin \
+  -B /usr/lib/postgresql/15/bin \
+  -d /var/lib/postgresql/11/data \
+  -D /var/lib/postgresql/15/data \
+  -U sonar \
+  -v \
+  --check
+
+

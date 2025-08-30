@@ -1,0 +1,22 @@
+docker run -it --rm \
+  --name pg-upgrade-helper \
+  -v /Users/macbook/Documents/TMP_SONAR/db:/var/lib/postgresql/11/data \
+  -v /Users/macbook/Documents/TMP_SONAR/db15:/var/lib/postgresql/15/data \
+  -e PGUSER=sonar \
+  -e PGPASSWORD=sonar \
+  --user root \
+  postgres:15.6 /bin/bash
+
+
+Шаг 1: Создайте дамп базы данных на сервере
+
+  /usr/lib/postgresql/11/bin/pg_dump -U sonar -d sonar -f /tmp/sonar_backup.sql
+
+
+Шаг 8: Восстановите данные
+/usr/lib/postgresql/15/bin/psql -U postgres -c "CREATE DATABASE sonar;"
+
+/usr/lib/postgresql/15/bin/psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE sonar TO sonar;"
+
+
+  /usr/lib/postgresql/15/bin/psql -U sonar -d sonar -f /tmp/sonar_backup.sql
