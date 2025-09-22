@@ -1,7 +1,7 @@
 Vg39)@v;
 # Инструкции по обновлению SonarQube до 25.8.0.112029-community
 
-## 📋 Подготовка
+## Подготовка
 
 ### 1. Подключение к серверу
 ```bash
@@ -25,7 +25,7 @@ docker exec sonarqube-postgres psql -U sonar -c "SELECT version();"
 du -sh /var/storage/sonarqube/
 ```
 
-## 🚀 Выполнение обновления
+## Выполнение обновления
 
 ### Вариант 1: Автоматическое обновление (рекомендуется)
 
@@ -104,7 +104,7 @@ curl http://localhost:9000/api/system/status
 curl -s http://localhost:9000/api/system/status | grep -o '"version":"[^"]*"'
 ```
 
-## 🔍 Проверка после обновления
+## Проверка после обновления
 
 ### 1. Проверка версий
 ```bash
@@ -133,7 +133,7 @@ docker exec sonarqube-postgres psql -U sonar -d sonar -c "SELECT pg_size_pretty(
 docker logs sonarqube | grep -i "community branch plugin"
 ```
 
-## ⚠️ Возможные проблемы и решения
+## Возможные проблемы и решения
 
 ### Проблема 1: PostgreSQL не запускается
 ```bash
@@ -164,7 +164,7 @@ docker logs sonarqube | grep -i "migration\|error"
 docker exec sonarqube rm -rf /opt/sonarqube/temp/*
 ```
 
-## 🔄 Откат к предыдущей версии
+## Откат к предыдущей версии
 
 Если что-то пошло не так:
 
@@ -179,7 +179,7 @@ cp docker_sonar_backup.yml docker_sonar.yml
 docker-compose -f docker_sonar.yml up -d
 ```
 
-## 📊 Ожидаемые результаты
+## Ожидаемые результаты
 
 После успешного обновления:
 - **SonarQube**: 25.8.0.112029-community
@@ -188,7 +188,7 @@ docker-compose -f docker_sonar.yml up -d
 - **Все данные**: Сохранены
 - **Функциональность**: Полностью работоспособна
 
-## 🎯 Контакты для поддержки
+## Контакты для поддержки
 
 При возникновении проблем:
 1. Проверьте логи: `docker logs sonarqube`
